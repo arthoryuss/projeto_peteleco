@@ -1,0 +1,99 @@
+{% extends "index.html" %}
+{% load static %}
+{% block content %}
+<script src="{% static '/code/highcharts.js' %}"></script>
+<script src="{% static '/code/modules/exporting.js' %}"></script>
+<script src="{% static '/code/modules/export-data.js' %}"></script>
+
+<div id="container"></div>
+
+
+
+<script>
+
+    Highcharts.chart('container', {
+        chart: {
+            type: 'spline',
+            animation: Highcharts.svg, // don't animate in old IE
+            marginRight: 10,
+            events: {
+                load: function () {
+
+                    // set up the updating of the chart each second
+                    var series = this.series[0];
+                    setInterval(function () {
+                        var x = (new Date()).getTime(), // current time
+                            y = 0;
+                        series.addPoint([x, y], true, true);
+                    }, 1000);
+                }
+            }
+        },
+
+        time: {
+            useUTC: false
+        },
+
+        title: {
+            text: ''
+        },
+        xAxis: {
+            type: 'datetime',
+            tickPixelInterval: 150
+        },
+        yAxis: {
+            title: {
+                text: 'm³'
+            },
+            plotLines: [{
+                value: 0,
+                width: 1,
+                color: '#808080'
+            }]
+        },
+        tooltip: {
+            headerFormat: '<b>{series.name}</b><br/>',
+            pointFormat: '{point.x:%Y-%m-%d %H:%M:%S}<br/>{point.y:.2f}'
+        },
+        legend: {
+            enabled: false
+        },
+        exporting: {
+            enabled: false
+        },
+        series: [{
+            name: 'Random data',
+            data: (function () {
+                // generate an array of random data
+                var data = [],
+                    time = (new Date()).getTime(),
+                    i;
+
+                for (i = -19; i <= 0; i += 1) {
+                    data.push({
+                        x: time + i * 1000,
+                        y: 0
+                    });
+                }
+                return data;
+            }())
+        }]
+    });
+
+    var roomName = '1';
+
+    var chatSocket = new WebSocket(
+        'ws://' + window.location.host +
+        '/ws/chat/' + roomName + '/');
+
+    chatSocket.onmessage = function(e) {
+        var data = JSON.parse(e.data);
+        var message = data['message'];
+        var total = data['total']
+    };
+
+</script>
+</body>
+{% endblock %}
+
+
